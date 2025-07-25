@@ -36,50 +36,58 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Build Windows installer
+      - name: Check Windows build environment
+        run: |
+          echo "=== Environment Check ==="
+          rustc --version
+          cargo --version
+          node --version
+          npm --version
+          echo "=== WebView2 Check ==="
+          Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*WebView2*"} | Select-Object Name, Version
+
+      - name: Try direct Tauri build
+        run: |
+          echo "=== Building with Tauri CLI directly ==="
+          cd src-tauri
+          cargo tauri build --verbose
+        continue-on-error: true
+
+      - name: Alternative: Build with tauri-action
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ''
+        continue-on-error: true
 
-      - name: List build outputs
+      - name: List ALL build outputs
         run: |
-          echo "=== Build Results ==="
-          dir src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis\ /B 2>nul || echo "NSIS folder not found"
-          dir src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi\ /B 2>nul || echo "MSI folder not found"
-          dir src-tauri\target\release\bundle\nsis\ /B 2>nul || echo "Default NSIS folder not found"
-          dir src-tauri\target\release\bundle\msi\ /B 2>nul || echo "Default MSI folder not found"
+          echo "=== All files in target directory ==="
+          Get-ChildItem -Recurse src-tauri\target -ErrorAction SilentlyContinue | Where-Object {$_.Extension -match "\.(exe|msi|dmg)$"} | Format-Table FullName, Length
+          echo "=== Bundle directories ==="
+          Get-ChildItem -Recurse src-tauri\target -Name "*bundle*" -ErrorAction SilentlyContinue
+          echo "=== Release directories ==="
+          Get-ChildItem -Path "src-tauri\target" -Recurse -Directory -Name "*release*" -ErrorAction SilentlyContinue
 
-      - name: Upload Windows installer (NSIS)
+      - name: Upload Windows installer (any location)
         uses: actions/upload-artifact@v4
         with:
-          name: windows-installer-nsis
+          name: windows-debug-full
           path: |
-            src-tauri/target/**/bundle/nsis/*.exe
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Upload Windows installer (MSI)
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-msi
-          path: |
-            src-tauri/target/**/bundle/msi/*.msi
+            src-tauri/target/**/*.exe
+            src-tauri/target/**/*.msi
           if-no-files-found: warn
           retention-days: 7
 
       - name: Create summary
         run: |
-          echo "## 🎉 Windows Build Complete!" >> $env:GITHUB_STEP_SUMMARY
+          echo "## 🔧 Windows Build Debug Results" >> $env:GITHUB_STEP_SUMMARY
           echo "" >> $env:GITHUB_STEP_SUMMARY
-          echo "### Download the installer:" >> $env:GITHUB_STEP_SUMMARY
-          echo "1. Go to the 'Actions' tab" >> $env:GITHUB_STEP_SUMMARY
-          echo "2. Click on this workflow run" >> $env:GITHUB_STEP_SUMMARY
-          echo "3. Download the 'windows-installer-nsis' or 'windows-installer-msi' artifact" >> $env:GITHUB_STEP_SUMMARY
-          echo "4. Extract and run the .exe file" >> $env:GITHUB_STEP_SUMMARY
+          echo "This workflow attempts to build the Windows installer and debug any issues." >> $env:GITHUB_STEP_SUMMARY
           echo "" >> $env:GITHUB_STEP_SUMMARY
-          echo "### Installation:" >> $env:GITHUB_STEP_SUMMARY
-          echo "- Run the installer as administrator" >> $env:GITHUB_STEP_SUMMARY
-          echo "- All dependencies (WebView2, etc.) are included" >> $env:GITHUB_STEP_SUMMARY
-          echo "- Creates Start Menu and Desktop shortcuts" >> $env:GITHUB_STEP_SUMMARY
+          echo "### Check the logs above for:" >> $env:GITHUB_STEP_SUMMARY
+          echo "1. Rust compilation errors" >> $env:GITHUB_STEP_SUMMARY
+          echo "2. Tauri bundling issues" >> $env:GITHUB_STEP_SUMMARY
+          echo "3. Missing dependencies" >> $env:GITHUB_STEP_SUMMARY
+          echo "4. WebView2 availability" >> $env:GITHUB_STEP_SUMMARY
