@@ -1,0 +1,84 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Optics Ring Generator Professional",
+  "version": "1.0.0",
+  "identifier": "com.opticsringgenerator.professional",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Optics Ring Generator Professional",
+        "width": 1400,
+        "height": 900,
+        "center": true,
+        "fullscreen": true,
+        "maximized": true,
+        "resizable": true,
+        "minWidth": 1200,
+        "minHeight": 800
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Optics Ring Generator Team",
+    "copyright": "Copyright © 2025 Optics Ring Generator Team. All rights reserved.",
+    "category": "Productivity",
+    "shortDescription": "Professional 3D-printable optical ring generator",
+    "longDescription": "A professional desktop application for generating precision 3D-printable support rings for optical lenses and components. Features advanced geometry generation and STL export capabilities.",
+    "externalBin": [],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "nsis": {
+        "template": null,
+        "installerIcon": null,
+        "installMode": "perMachine",
+        "languages": ["English"],
+        "displayLanguageSelector": false,
+        "customLanguageFiles": {}
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "hardenedRuntime": true,
+      "entitlements": null,
+      "providerShortName": null,
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 170
+        },
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        }
+      }
+    }
+  }
+}

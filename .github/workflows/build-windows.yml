@@ -1,0 +1,85 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: false
+        default: 'latest'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    name: Build Windows Installer
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build Windows installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: ''
+
+      - name: List build outputs
+        run: |
+          echo "=== Build Results ==="
+          dir src-tauri\target\x86_64-pc-windows-msvc\release\bundle\nsis\ /B 2>nul || echo "NSIS folder not found"
+          dir src-tauri\target\x86_64-pc-windows-msvc\release\bundle\msi\ /B 2>nul || echo "MSI folder not found"
+          dir src-tauri\target\release\bundle\nsis\ /B 2>nul || echo "Default NSIS folder not found"
+          dir src-tauri\target\release\bundle\msi\ /B 2>nul || echo "Default MSI folder not found"
+
+      - name: Upload Windows installer (NSIS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-nsis
+          path: |
+            src-tauri/target/**/bundle/nsis/*.exe
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows installer (MSI)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-msi
+          path: |
+            src-tauri/target/**/bundle/msi/*.msi
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Create summary
+        run: |
+          echo "## 🎉 Windows Build Complete!" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "### Download the installer:" >> $env:GITHUB_STEP_SUMMARY
+          echo "1. Go to the 'Actions' tab" >> $env:GITHUB_STEP_SUMMARY
+          echo "2. Click on this workflow run" >> $env:GITHUB_STEP_SUMMARY
+          echo "3. Download the 'windows-installer-nsis' or 'windows-installer-msi' artifact" >> $env:GITHUB_STEP_SUMMARY
+          echo "4. Extract and run the .exe file" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "### Installation:" >> $env:GITHUB_STEP_SUMMARY
+          echo "- Run the installer as administrator" >> $env:GITHUB_STEP_SUMMARY
+          echo "- All dependencies (WebView2, etc.) are included" >> $env:GITHUB_STEP_SUMMARY
+          echo "- Creates Start Menu and Desktop shortcuts" >> $env:GITHUB_STEP_SUMMARY
