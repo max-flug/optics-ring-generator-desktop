@@ -11,14 +11,16 @@
     "windows": [
       {
         "title": "Optics Ring Generator Professional",
-        "width": 1400,
+        "width": 1600,
         "height": 900,
         "center": true,
-        "fullscreen": true,
+        "fullscreen": false,
         "maximized": true,
         "resizable": true,
         "minWidth": 1200,
-        "minHeight": 800
+        "minHeight": 675,
+        "maxWidth": 2560,
+        "maxHeight": 1440
       }
     ],
     "security": {

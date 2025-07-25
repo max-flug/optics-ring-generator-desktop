@@ -523,4 +523,35 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     });
   });
+
+  // Add keyboard shortcuts for window management
+  document.addEventListener('keydown', (event) => {
+    // F11 - Toggle fullscreen
+    if (event.key === 'F11') {
+      event.preventDefault();
+      if (invoke) {
+        invoke('toggle_fullscreen').catch(console.error);
+      }
+    }
+    
+    // Ctrl+M - Toggle maximize
+    if (event.ctrlKey && event.key === 'm') {
+      event.preventDefault();
+      if (invoke) {
+        invoke('set_window_maximized', { maximized: true }).catch(console.error);
+      }
+    }
+    
+    // Escape - Exit fullscreen
+    if (event.key === 'Escape') {
+      if (invoke) {
+        invoke('toggle_fullscreen').then(isFullscreen => {
+          if (isFullscreen) {
+            // If still fullscreen after toggle, force exit
+            invoke('toggle_fullscreen').catch(console.error);
+          }
+        }).catch(console.error);
+      }
+    }
+  });
 });

@@ -762,3 +762,71 @@ body {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
+
+/* Window Management & Responsive Behavior */
+@media (max-aspect-ratio: 16/9) {
+  .app {
+    /* Adjust layout for taller windows */
+    grid-template-rows: auto 1fr;
+  }
+  
+  .sidebar {
+    /* Make sidebar scrollable on very tall windows */
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+}
+
+@media (min-aspect-ratio: 21/9) {
+  .main-content {
+    /* Adjust for ultra-wide displays */
+    max-width: calc(100vw - 400px);
+  }
+}
+
+/* Ensure 3D viewport maintains good proportions */
+#three-viewport {
+  min-height: 400px;
+  max-height: calc(100vh - 200px);
+  aspect-ratio: 16 / 9;
+}
+
+/* Hide scrollbars when in fullscreen */
+.fullscreen body {
+  overflow: hidden;
+}
+
+/* Window control hints */
+.window-controls-hint {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--text-secondary);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.window-controls-hint.show {
+  opacity: 1;
+}
+
+/* Keyboard shortcut indicators */
+.shortcut-indicator {
+  font-family: monospace;
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: var(--space-2);
+}
+
+/* Error state for inputs */
+.form-group input.error {
+  border-color: var(--accent-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
