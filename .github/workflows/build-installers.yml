@@ -72,6 +72,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }}
+          includeDebug: false
+          includeRelease: true
 
       - name: Upload macOS artifacts
         if: matrix.platform == 'macos-latest'
@@ -79,8 +81,9 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
-            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            src-tauri/target/*/release/bundle/dmg/*.dmg
+            src-tauri/target/*/release/bundle/macos/*.app
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Upload Windows artifacts
@@ -89,8 +92,9 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
-            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+            src-tauri/target/*/release/bundle/nsis/*.exe
+            src-tauri/target/*/release/bundle/msi/*.msi
+          if-no-files-found: warn
           retention-days: 30
 
   create-release:
@@ -114,9 +118,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/**/*.dmg
-            ./artifacts/**/*.exe
-            ./artifacts/**/*.msi
+            ./artifacts/*/*.dmg
+            ./artifacts/*/*.exe
+            ./artifacts/*/*.msi
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -128,6 +132,7 @@ jobs:
             **macOS:**
             - Apple Silicon (M1/M2/M3): `*_aarch64.dmg`
             - Intel: `*_x86_64.dmg`
+            - Universal (Both): `*_universal.dmg`
             
             **Windows:**
             - Windows 10/11 (64-bit): `*.exe` or `*.msi`
@@ -179,12 +184,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --target universal-apple-darwin
+          includeDebug: false
+          includeRelease: true
 
       - name: Upload Universal macOS artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-universal
           path: |
-            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app
+            src-tauri/target/*/release/bundle/dmg/*.dmg
+            src-tauri/target/*/release/bundle/macos/*.app
+          if-no-files-found: warn
           retention-days: 30

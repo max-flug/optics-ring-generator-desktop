@@ -1,0 +1,71 @@
+name: Build Test
+
+on:
+  workflow_dispatch: # Manual trigger only
+  push:
+    branches: [ main ]
+
+jobs:
+  test-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: ''
+            name: 'macOS'
+          - platform: 'windows-latest'
+            args: ''
+            name: 'Windows'
+
+    runs-on: ${{ matrix.platform }}
+    name: Test Build ${{ matrix.name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build with Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List build outputs (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          echo "=== Build Results ==="
+          find src-tauri/target -name "*.dmg" -o -name "*.app" | head -10
+          ls -la src-tauri/target/*/release/bundle/ 2>/dev/null || echo "No bundle directory found"
+
+      - name: List build outputs (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          echo "=== Build Results ==="
+          Get-ChildItem -Recurse src-tauri/target -Include "*.exe", "*.msi" | Select-Object -First 10
+          Get-ChildItem src-tauri/target/release/bundle -ErrorAction SilentlyContinue
+
+      - name: Upload artifacts (any files found)
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-build-${{ matrix.name }}
+          path: |
+            src-tauri/target/**/bundle/**/*
+          if-no-files-found: warn
+          retention-days: 7
