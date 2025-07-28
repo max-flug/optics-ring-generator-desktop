@@ -1,7 +1,7 @@
 {
-  "name": "optics-ring-generator-desktop",
+  "name": "x-ring-desktop",
   "version": "0.1.0",
-  "description": "Desktop application for generating 3D-printable optical support rings",
+  "description": "Desktop application for generating 3D-printable X-rings",
   "main": "src/main.js",
   "scripts": {
     "tauri": "tauri",

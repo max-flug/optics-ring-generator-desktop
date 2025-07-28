@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Optics Ring Generator Professional",
+  "productName": "X-ring Professional",
   "version": "1.0.0",
-  "identifier": "com.opticsringgenerator.professional",
+  "identifier": "com.xring.professional",
   "build": {
     "frontendDist": "../src"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Optics Ring Generator Professional",
+        "title": "X-ring Professional",
         "width": 1600,
         "height": 900,
         "center": true,

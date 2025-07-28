@@ -169,7 +169,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: false
           body: |
-            ## 🎉 Optics Ring Generator Professional
+            ## 🎉 X-ring Professional
 
             ### Download Installers:
             
@@ -186,7 +186,7 @@ jobs:
             - **Windows**: Run the EXE installer as administrator
             
             ### Features:
-            - ✅ Professional 3D ring generator
+            - ✅ Professional 3D X-ring generator
             - ✅ Three ring types (Convex, Concave, Three-Point)
             - ✅ Real-time 3D preview
             - ✅ STL export for 3D printing

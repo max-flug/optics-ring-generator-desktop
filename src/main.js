@@ -85,7 +85,7 @@ async function selectOutputLocation() {
 function init3DViewer() {
   // Scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf0f0f0);
+  scene.background = new THREE.Color(0x27251f);
 
   // Camera
   camera = new THREE.PerspectiveCamera(75, previewCanvas.clientWidth / previewCanvas.clientHeight, 0.1, 1000);
@@ -94,19 +94,27 @@ function init3DViewer() {
   // Renderer
   renderer = new THREE.WebGLRenderer({ canvas: previewCanvas, antialias: true });
   renderer.setSize(previewCanvas.clientWidth, previewCanvas.clientHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = false; // Disable shadows for better performance and clarity
 
-  // Lights
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+  // Enhanced lighting setup for better visibility
+  // Strong ambient light for overall illumination
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(50, 50, 25);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
-  scene.add(directionalLight);
+  // Main directional light from top-front
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  mainLight.position.set(50, 100, 50);
+  scene.add(mainLight);
+
+  // Fill light from the left
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  fillLight.position.set(-50, 50, 25);
+  scene.add(fillLight);
+
+  // Back light for edge definition
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  backLight.position.set(0, 25, -50);
+  scene.add(backLight);
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement);
@@ -241,10 +249,12 @@ async function generate3DPreview(ringType, outerDiameter, innerDiameter) {
     }
     geometry.computeVertexNormals();
 
-    // Create material
-    const material = new THREE.MeshLambertMaterial({ 
-      color: 0x4A90E2,
-      side: THREE.DoubleSide 
+    // Create material with better light interaction
+    const material = new THREE.MeshPhongMaterial({ 
+      color: 0x009fdf,
+      side: THREE.DoubleSide,
+      shininess: 60,
+      specular: 0x222222
     });
 
     // Remove previous mesh
@@ -437,7 +447,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   previewContainer = document.getElementById('preview-container');
   
   // New UI elements
-  const loadingState = document.getElementById('loading-state');
+  const previewLabel = document.getElementById('preview-label');
   const modelDimensions = document.getElementById('model-dimensions');
   const actionPanel = document.getElementById('action-panel');
   const saveStlBtn = document.getElementById('save-stl-btn');
@@ -471,19 +481,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     try {
       const { ringType, outerDiameter, innerDiameter } = validateForm();
       
-      // Show loading state
-      loadingState.style.display = 'flex';
+      // Hide preview label and action panel during generation
+      previewLabel.style.display = 'none';
       actionPanel.style.display = 'none';
       
       // First generate and show 3D preview
       await generate3DPreview(ringType, outerDiameter, innerDiameter);
       
-      // Hide loading state and show action panel
-      loadingState.style.display = 'none';
+      // Show action panel after generation is complete
       actionPanel.style.display = 'block';
       
     } catch (error) {
-      loadingState.style.display = 'none';
+      previewLabel.style.display = 'flex';
       showError(error.message);
     }
   });
