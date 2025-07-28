@@ -198,47 +198,42 @@ fn add_convex_profile_segment(triangles: &mut Vec<Triangle>, angle1: f32, angle2
     }
 }
 
-fn create_convex_profile_points(inner_radius: f32, outer_radius: f32, total_height: f32,
+fn create_convex_profile_points(inner_radius: f32, outer_radius: f32, _total_height: f32,
                                _top_step_height: f32, _bottom_step_height: f32,
                                _middle_step_height: f32, _chamfer_depth: f32, _inner_step_width: f32) -> Vec<(f32, f32)> {
     let mut points = Vec::new();
     
-    // Interpret the drawing correctly: the STRIPED areas are the actual ring material
-    // This creates a ring with internal steps/recesses as shown in the hatched sections
+    // Create a proper convex ring profile based on technical drawing
+    // The ring has a 22mm height with internal stepped geometry for lens positioning
     
-    // The drawing shows the ring has a complex internal profile but simpler external profile
-    // Height is 22mm, with internal steps creating the lens-holding geometry
+    // Starting from bottom-outer, going clockwise around the profile:
     
-    // External profile (outer surface) - relatively simple
-    // Internal profile (inner surface) - complex with steps
-    
-    // Start from bottom outer edge
+    // 1. Bottom outer edge
     points.push((outer_radius, 0.0));
     
-    // Outer surface goes straight up (simple external profile)
+    // 2. Straight up the outer wall
     points.push((outer_radius, 22.0));
     
-    // Top surface - from outer to inner
-    // Based on the striped area, there's a recess at the top
-    let top_recess_radius = inner_radius + 2.0;
-    points.push((top_recess_radius, 22.0));
+    // 3. Top surface - outer to step
+    let step_radius = inner_radius + 2.0;
+    points.push((step_radius, 22.0));
     
-    // Drop down to create top recess (internal step)
-    points.push((top_recess_radius, 12.0));
+    // 4. Drop down to middle level (creates top recess)
+    points.push((step_radius, 12.0));
     
-    // Internal step surface
+    // 5. Step in towards center
     points.push((inner_radius, 12.0));
     
-    // Inner surface down to bottom step
-    points.push((inner_radius, 10.0));
+    // 6. Down the inner wall to bottom step level
+    points.push((inner_radius, 2.0));
     
-    // Bottom step (internal)
-    points.push((top_recess_radius, 10.0));
+    // 7. Step out to create bottom recess
+    points.push((step_radius, 2.0));
     
-    // Down to bottom
-    points.push((top_recess_radius, 0.0));
+    // 8. Down to bottom
+    points.push((step_radius, 0.0));
     
-    // Bottom surface back to outer edge
+    // Close the profile by returning to start point
     points.push((outer_radius, 0.0));
     
     points
@@ -248,19 +243,19 @@ fn add_convex_horizontal_surfaces(triangles: &mut Vec<Triangle>, inner_radius: f
                                 _total_height: f32, _top_step_height: f32, _bottom_step_height: f32,
                                 _middle_step_height: f32, _chamfer_depth: f32, _inner_step_width: f32, segments: usize) {
     
-    let top_recess_radius = inner_radius + 2.0;
+    let step_radius = inner_radius + 2.0;
     
-    // Bottom face - full ring (outer to inner recess)
-    add_annular_surface(triangles, top_recess_radius, outer_radius, 0.0, segments, false);
+    // Bottom face - outer ring (step_radius to outer_radius)
+    add_annular_surface(triangles, step_radius, outer_radius, 0.0, segments, false);
     
-    // Bottom step surface at 10mm height
-    add_annular_surface(triangles, inner_radius, top_recess_radius, 10.0, segments, true);
+    // Bottom step surface at 2mm height
+    add_annular_surface(triangles, inner_radius, step_radius, 2.0, segments, true);
     
     // Top step surface at 12mm height  
-    add_annular_surface(triangles, inner_radius, top_recess_radius, 12.0, segments, false);
+    add_annular_surface(triangles, inner_radius, step_radius, 12.0, segments, false);
     
-    // Top face at 22mm height - with recess
-    add_annular_surface(triangles, top_recess_radius, outer_radius, 22.0, segments, true);
+    // Top face at 22mm height
+    add_annular_surface(triangles, step_radius, outer_radius, 22.0, segments, true);
 }
 
 fn add_annular_surface(triangles: &mut Vec<Triangle>, inner_r: f32, outer_r: f32, z: f32, segments: usize, face_up: bool) {
@@ -280,30 +275,6 @@ fn add_annular_surface(triangles: &mut Vec<Triangle>, inner_r: f32, outer_r: f32
             add_triangle(triangles, p1, p3, p2);
             add_triangle(triangles, p2, p3, p4);
         }
-    }
-}
-
-fn add_convex_segment(triangles: &mut Vec<Triangle>, angle1: f32, angle2: f32, 
-                     inner_radius: f32, outer_radius: f32, _height: f32, curve_depth: f32) {
-    // Create curved surface that curves inward (convex from lens perspective)
-    let steps = 8;
-    for step in 0..steps {
-        let t1 = step as f32 / steps as f32;
-        let t2 = (step + 1) as f32 / steps as f32;
-        
-        let r1 = inner_radius + (outer_radius - inner_radius) * t1;
-        let r2 = inner_radius + (outer_radius - inner_radius) * t2;
-        
-        // Curve calculation - convex shape
-        let z_offset1 = curve_depth * (1.0 - (2.0 * t1 - 1.0).powi(2));
-        let z_offset2 = curve_depth * (1.0 - (2.0 * t2 - 1.0).powi(2));
-        
-        let p1 = Point3::new(r1 * angle1.cos(), r1 * angle1.sin(), z_offset1);
-        let p2 = Point3::new(r2 * angle1.cos(), r2 * angle1.sin(), z_offset2);
-        let p3 = Point3::new(r1 * angle2.cos(), r1 * angle2.sin(), z_offset1);
-        let p4 = Point3::new(r2 * angle2.cos(), r2 * angle2.sin(), z_offset2);
-        
-        add_quad_triangles(triangles, p1, p2, p3, p4);
     }
 }
 
